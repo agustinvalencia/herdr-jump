@@ -4,8 +4,10 @@ Two [herdr](https://herdr.dev) overlay pickers that browse **spaces** and
 **agents** *separately* — unlike the built-in session navigator, which shows
 everything together.
 
-- **Agents picker** — every detected agent, sorted by space then status, with a
-  colour-coded status dot (🟢 idle · 🟡 working · 🔴 blocked). Pick one to focus it.
+- **Agents picker** — every detected agent, grouped by space in the same order as
+  herdr's sidebar (workspace order, tab order preserved), with a status dot
+  coloured by state (green idle · yellow working · red blocked · teal done). Pick
+  one to focus it.
 - **Spaces picker** — every workspace with its status and pane/tab counts. Pick
   one to switch to it.
 
