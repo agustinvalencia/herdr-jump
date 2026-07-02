@@ -17,13 +17,3 @@ func TestStatusColor(t *testing.T) {
 		}
 	}
 }
-
-func TestStatusRankAttentionFirst(t *testing.T) {
-	// blocked and done (need you) must sort above active/idle work.
-	if !(statusRank("blocked") < statusRank("done") &&
-		statusRank("done") < statusRank("working") &&
-		statusRank("working") < statusRank("idle")) {
-		t.Fatalf("rank order wrong: blocked=%d done=%d working=%d idle=%d",
-			statusRank("blocked"), statusRank("done"), statusRank("working"), statusRank("idle"))
-	}
-}

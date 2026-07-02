@@ -92,17 +92,26 @@ func listWorkspaces() ([]Workspace, error) {
 	return res.Workspaces, nil
 }
 
-// workspaceLabels maps workspace_id → human label, so the agents picker can show
-// which space each agent lives in. Best-effort: a lookup miss just yields "".
-func workspaceLabels() map[string]string {
-	labels := map[string]string{}
+// workspaceInfo maps workspace_id → human label and → herdr's space number
+// (its ordering in the sidebar / spaces picker). Best-effort: a lookup miss
+// yields "" / 0.
+func workspaceInfo() (labels map[string]string, order map[string]int) {
+	labels, order = map[string]string{}, map[string]int{}
 	spaces, err := listWorkspaces()
 	if err != nil {
-		return labels
+		return
 	}
 	for _, w := range spaces {
 		labels[w.WorkspaceID] = w.Label
+		order[w.WorkspaceID] = w.Number
 	}
+	return
+}
+
+// workspaceLabels maps workspace_id → human label, so callers can show which
+// space each agent lives in.
+func workspaceLabels() map[string]string {
+	labels, _ := workspaceInfo()
 	return labels
 }
 

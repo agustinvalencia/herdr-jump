@@ -1,13 +1,13 @@
 # herdr-jump — separate overlay pickers for spaces and agents.
 #
-# Local plugin: register it from this checkout with
-#   herdr plugin link ~/dotfiles/.config/herdr/plugins-src/herdr-jump
-# herdr runs the [[build]] step (go build → ./bin/herdr-jump) and wires the
-# actions + panes below. Bind the two actions to keys in ~/.config/herdr/config.toml.
+# Install with:  herdr plugin install agustinvalencia/herdr-jump
+# Local dev:     herdr plugin link .   (from a checkout)
+# herdr runs the [[build]] step (scripts/build.sh → ./bin/herdr-jump) and wires
+# the actions + panes below. Bind the two actions to keys in ~/.config/herdr/config.toml.
 
 id = "agustinvalencia.herdr-jump"
 name = "Herdr Jump"
-version = "0.1.1"
+version = "0.1.2"
 min_herdr_version = "0.7.0"
 description = "Separate overlay pickers for herdr spaces and agents. Two pop-ups: one lists your spaces (workspaces), one lists your agents with live status colours — pick to jump. Unlike the combined session navigator, agents and spaces are browsed independently."
 platforms = ["linux", "macos"]
