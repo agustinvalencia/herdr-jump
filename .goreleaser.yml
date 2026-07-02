@@ -1,0 +1,49 @@
+# GoReleaser config for herdr-jump. Driven by .github/workflows/release.yml on
+# every pushed v* tag: it cross-compiles the binary, archives it, and attaches
+# the archives to a GitHub Release.
+#
+# These prebuilt archives are what `herdr plugin install` downloads when the
+# machine has no Go toolchain (see scripts/build.sh → install.sh). Archives are
+# named without a version so the releases/latest/download redirect resolves them.
+version: 2
+
+project_name: herdr-jump
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: herdr-jump
+    binary: herdr-jump
+    main: .
+    env:
+      - CGO_ENABLED=0
+    # Linux + macOS only, matching the manifest's platforms.
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w
+
+archives:
+  - id: default
+    # No version in the name so releases/latest/download/<name> works.
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
+    files:
+      - LICENSE*
+      - README*
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^test:"
+      - "Merge pull request"
+      - "Merge branch"

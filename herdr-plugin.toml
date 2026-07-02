@@ -1,0 +1,47 @@
+# herdr-jump — separate overlay pickers for spaces and agents.
+#
+# Local plugin: register it from this checkout with
+#   herdr plugin link ~/dotfiles/.config/herdr/plugins-src/herdr-jump
+# herdr runs the [[build]] step (go build → ./bin/herdr-jump) and wires the
+# actions + panes below. Bind the two actions to keys in ~/.config/herdr/config.toml.
+
+id = "agustinvalencia.herdr-jump"
+name = "Herdr Jump"
+version = "0.1.0"
+min_herdr_version = "0.7.0"
+description = "Separate overlay pickers for herdr spaces and agents. Two pop-ups: one lists your spaces (workspaces), one lists your agents with live status colours — pick to jump. Unlike the combined session navigator, agents and spaces are browsed independently."
+platforms = ["linux", "macos"]
+
+# Compile the binary at install/link time. herdr runs this once; the result is
+# ./bin/herdr-jump, which every entry point below invokes.
+[[build]]
+command = ["sh", "scripts/build.sh"]
+
+# ── Agents ──────────────────────────────────────────────────────────────
+# agents (action) is what a keybinding runs. It has no terminal of its own, so
+# it just asks herdr to open the picker as an overlay pane.
+[[actions]]
+id = "agents"
+title = "Herdr Jump: Agents"
+command = ["./bin/herdr-jump", "agents"]
+
+# agents-picker (pane) is the overlay UI herdr opens for the action above.
+# placement = "overlay" gives a temporary centered pop-up; herdr restores your
+# previous focus when it closes.
+[[panes]]
+id = "agents-picker"
+title = "Agents"
+placement = "overlay"
+command = ["./bin/herdr-jump", "agents-ui"]
+
+# ── Spaces (workspaces) ─────────────────────────────────────────────────
+[[actions]]
+id = "spaces"
+title = "Herdr Jump: Spaces"
+command = ["./bin/herdr-jump", "spaces"]
+
+[[panes]]
+id = "spaces-picker"
+title = "Spaces"
+placement = "overlay"
+command = ["./bin/herdr-jump", "spaces-ui"]

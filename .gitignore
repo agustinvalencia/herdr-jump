@@ -1,0 +1,5 @@
+# Compiled binary — rebuilt by scripts/build.sh at plugin install/link time.
+/bin/
+
+# GoReleaser output.
+/dist/

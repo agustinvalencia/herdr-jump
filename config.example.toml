@@ -1,0 +1,13 @@
+# Example herdr-jump configuration.
+# Copy into the plugin config dir to customise:
+#   cp config.example.toml "$(herdr plugin config-dir agustinvalencia.herdr-jump)/config.toml"
+
+# Where the picker card sits in the overlay pane.
+# Horizontal: left | center | right   Vertical: top | middle | bottom
+# Combine them, e.g. "center", "top-left", "bottom right", "top".
+# Missing axes default to center.
+align = "center"
+
+# Cap the card width in columns so it reads as a centered card on wide panes.
+# Set 0 to disable the cap (the card grows to fit the pane).
+max_width = 96
