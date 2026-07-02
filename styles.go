@@ -13,6 +13,7 @@ const (
 	colGreen   = lipgloss.Color("#a6e3a1")
 	colYellow  = lipgloss.Color("#f9e2af")
 	colRed     = lipgloss.Color("#f38ba8")
+	colTeal    = lipgloss.Color("#94e2d5")
 	colCrust   = lipgloss.Color("#11111b")
 )
 
@@ -37,7 +38,8 @@ var (
 	selTextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#ffffff")).Bold(true)
 )
 
-// statusColor maps a herdr agent/workspace status to its glyph colour.
+// statusColor maps a herdr agent/workspace status to its glyph colour,
+// mirroring herdr's own agent-panel palette.
 func statusColor(status string) lipgloss.Color {
 	switch status {
 	case "idle":
@@ -46,6 +48,8 @@ func statusColor(status string) lipgloss.Color {
 		return colYellow
 	case "blocked":
 		return colRed
+	case "done":
+		return colTeal
 	default:
 		return colOverlay
 	}

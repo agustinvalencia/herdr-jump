@@ -44,16 +44,19 @@ func runAgentsUI() {
 	}
 }
 
-// statusRank orders statuses so the ones needing attention sort first.
+// statusRank orders statuses so the ones needing attention sort first:
+// blocked (stuck) and done (finished, awaiting you) float above active/idle work.
 func statusRank(status string) int {
 	switch status {
 	case "blocked":
 		return 0
-	case "working":
+	case "done":
 		return 1
-	case "idle":
+	case "working":
 		return 2
-	default:
+	case "idle":
 		return 3
+	default:
+		return 4
 	}
 }

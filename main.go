@@ -9,7 +9,7 @@ import (
 // to open this plugin's overlay panes.
 const pluginID = "agustinvalencia.herdr-jump"
 
-const version = "0.1.0"
+const version = "0.1.1"
 
 // main dispatches on the subcommand herdr passes per manifest entry point:
 //
