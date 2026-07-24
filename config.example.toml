@@ -11,3 +11,29 @@ align = "center"
 # Cap the card width in columns so it reads as a centered card on wide panes.
 # Set 0 to disable the cap (the card grows to fit the pane).
 max_width = 96
+
+# Card fields. Each picker renders every entry as a card: a header (hotkey number
+# + status) above the body lines you configure here. `rows` mirrors herdr's
+# [ui.sidebar.*] model — one inner list per line, listing field tokens. Cells
+# that resolve empty are dropped; an unknown token is ignored. Omit a section to
+# use the built-in default layout.
+#
+# Agent tokens:  state_icon  state_text  agent  workspace  cwd
+#                terminal_title  terminal_title_stripped  pane  tab
+# Space tokens:  state_icon  state_text  workspace  number  panes  tabs
+# (herdr's branch / git_status aren't available from the herdr CLI.)
+
+[agents]
+# Default: title-forward — what the agent is doing, then who/where, then cwd.
+rows = [
+  ["terminal_title_stripped"],
+  ["agent", "workspace"],
+  ["cwd"],
+]
+
+[spaces]
+# Default: the space label with its number, then pane/tab counts.
+rows = [
+  ["workspace", "number"],
+  ["panes", "tabs"],
+]

@@ -5,19 +5,20 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/sahilm/fuzzy"
 )
 
-// item is one selectable row, shared by the agents and spaces pickers.
+// cardGap is the blank-line gap stacked between cards.
+const cardGap = 1
+
+// item is one selectable card, shared by the agents and spaces pickers.
 type item struct {
-	id         string          // opaque id handed to the focus command
-	glyph      string          // status marker
-	glyphColor lipgloss.Color  // colour for the glyph
-	primary    string          // main label (agent name / space label)
-	badge      string          // secondary tag (space name / "#1")
-	detail     string          // trailing context (cwd / pane+tab counts)
-	focused    bool            // currently-focused agent/space (shown with a ▸)
-	search     string          // concatenated text used for fuzzy filtering
+	id      string   // opaque id handed to the focus command (pane_id / workspace_id)
+	status  string   // raw agent/workspace status → header state icon + text
+	lines   []string // prerendered card body lines, one per configured row
+	focused bool     // currently-focused agent/space (marked ▸ in the header)
+	search  string   // concatenated text used for fuzzy filtering
 }
 
 // picker is the bubbletea model. It is modal (lazygit-style):
@@ -206,88 +207,126 @@ func (p *picker) View() string {
 		b.WriteString("  " + emptyStyle.Render(msg) + "\n")
 	}
 
-	// Windowed list so long lists scroll around the cursor. Reserve extra rows
-	// for the filter line when it is showing.
-	reserve := 6
-	if p.filtering {
-		reserve = 8
-	}
-	visible := p.height - reserve
-	if visible < 1 {
-		visible = 1
-	}
-	start := 0
-	if p.cursor >= visible {
-		start = p.cursor - visible + 1
-	}
-	end := start + visible
-	if end > len(p.order) {
-		end = len(p.order)
-	}
-
-	// Card width: cap it so the content reads as a centered card on a wide pane
-	// rather than sprawling full-width. Column widths derive from the card, not
-	// the pane, leaving room for the leading number column.
+	// Card geometry. cardW is the outer card (border included); a border (1) plus
+	// horizontal padding (1) on each side leaves contentW columns for text.
 	cardW := p.width - 4
 	if p.cardMax > 0 && cardW > p.cardMax {
 		cardW = p.cardMax
 	}
 	if cardW < 24 {
-		cardW = p.width
+		cardW = p.width - 2
 	}
-	primaryW, badgeW := 14, 12
-	detailW := cardW - primaryW - badgeW - 12
-	if detailW < 10 {
-		detailW = 10
+	contentW := cardW - 4
+	if contentW < 8 {
+		contentW = 8
+	}
+
+	// Window the cards so a long list scrolls around the cursor. Each card is the
+	// two borders + a header line + one line per configured body row.
+	cardH := p.cardBodyLines() + 3
+	slotH := cardH + cardGap
+	reserve := 4 // title line, blank, footer, and a margin row
+	if p.filtering {
+		reserve += 2
+	}
+	avail := p.height - reserve
+	if avail < cardH {
+		avail = cardH
+	}
+	perPage := (avail + cardGap) / slotH // the last card needs no trailing gap
+	if perPage < 1 {
+		perPage = 1
+	}
+	start := 0
+	if p.cursor >= perPage {
+		start = p.cursor - perPage + 1
+	}
+	end := start + perPage
+	if end > len(p.order) {
+		end = len(p.order)
 	}
 
 	for i := start; i < end; i++ {
-		it := p.items[p.order[i]]
-		selected := i == p.cursor
-
-		glyph := lipgloss.NewStyle().Foreground(it.glyphColor).Render(it.glyph)
-		marker := " "
-		if it.focused {
-			marker = lipgloss.NewStyle().Foreground(colAccent).Render("▸")
+		if i > start {
+			b.WriteString(strings.Repeat("\n", cardGap))
 		}
-
-		// Right-aligned 1-based position. 1-9 double as select hotkeys.
-		numStr := itoa(i + 1)
-		if len(numStr) < 2 {
-			numStr = " " + numStr
-		}
-
-		primary := pad(it.primary, primaryW)
-		badge := pad(it.badge, badgeW)
-		detail := truncate(it.detail, detailW)
-
-		var prefix, num, primaryR string
-		if selected {
-			prefix = selBarStyle.Render("┃")
-			num = selTextStyle.Render(numStr)
-			primaryR = selTextStyle.Render(primary)
-		} else {
-			prefix = " "
-			num = countStyle.Render(numStr)
-			primaryR = primaryStyle.Render(primary)
-		}
-		row := primaryR + " " + badgeStyle.Render(badge) + " " + detailStyle.Render(detail)
-		b.WriteString(prefix + num + " " + marker + " " + glyph + " " + row + "\n")
+		b.WriteString(p.renderCard(p.items[p.order[i]], i+1, i == p.cursor, contentW))
+		b.WriteString("\n")
 	}
 
 	b.WriteString("\n")
 	if p.filtering {
-		b.WriteString(footerStyle.Render("  type to filter · ↑/↓ move · enter focus · esc clear"))
+		b.WriteString(footerStyle.Render("type to filter · ↑/↓ move · enter focus · esc clear"))
 	} else {
-		b.WriteString(footerStyle.Render("  1-9 select · j/k move · enter focus · / filter · q quit"))
+		b.WriteString(footerStyle.Render("1-9 select · j/k move · enter focus · / filter · q quit"))
 	}
 
-	// Pad every line to the card width first, so the block centers as one
-	// left-aligned unit — otherwise lipgloss.Place centers each line by its own
-	// width and the left edge goes ragged. Then place the card within the pane
-	// per the configured alignment (see config.go).
-	card := lipgloss.NewStyle().Width(cardW).Align(lipgloss.Left).Render(b.String())
-	return lipgloss.Place(p.width, p.height, p.alignH, p.alignV, card)
+	// Pad every line to the card width so the block places as one left-aligned
+	// unit (otherwise lipgloss.Place ragged-centers each line by its own width),
+	// then place it within the pane per the configured alignment (see config.go).
+	block := lipgloss.NewStyle().Width(cardW).Align(lipgloss.Left).Render(b.String())
+	return lipgloss.Place(p.width, p.height, p.alignH, p.alignV, block)
+}
+
+// cardBodyLines is the body-row count, uniform across a picker's cards (they all
+// share the same configured layout).
+func (p *picker) cardBodyLines() int {
+	for _, it := range p.items {
+		return len(it.lines)
+	}
+	return 0
+}
+
+// renderCard draws one agent/space as a bordered card: a header line (hotkey
+// number on the left, focus marker + status on the right) above the prerendered
+// body lines. The selected card gets a thick accent border, others a dim rounded
+// one. Lines are ansi-truncated so styling survives the cut.
+func (p *picker) renderCard(it item, num int, selected bool, contentW int) string {
+	numCell := countStyle.Render(itoa(num))
+	if selected {
+		numCell = selTextStyle.Render(itoa(num))
+	}
+	right := stateIcon(it.status)
+	if st := stateText(it.status); st != "" {
+		right += " " + st
+	}
+	if it.focused {
+		right = lipgloss.NewStyle().Foreground(colAccent).Render("▸") + " " + right
+	}
+	gap := contentW - ansi.StringWidth(numCell) - ansi.StringWidth(right)
+	if gap < 1 {
+		gap = 1
+	}
+	header := numCell + strings.Repeat(" ", gap) + right
+
+	// Fit every line to exactly contentW columns so the border sizes uniformly
+	// and no line word-wraps. We size the border to the content ourselves rather
+	// than via Style.Width, which would subtract padding and re-wrap.
+	lines := make([]string, 0, len(it.lines)+1)
+	lines = append(lines, fitWidth(header, contentW))
+	for _, bl := range it.lines {
+		lines = append(lines, fitWidth(bl, contentW))
+	}
+
+	border, bc := lipgloss.RoundedBorder(), colOverlay
+	if selected {
+		border, bc = lipgloss.ThickBorder(), colAccent
+	}
+	return lipgloss.NewStyle().
+		Border(border).
+		BorderForeground(bc).
+		Padding(0, 1).
+		Render(strings.Join(lines, "\n"))
+}
+
+// fitWidth truncates (with an ellipsis) or right-pads a possibly-styled string to
+// exactly w display columns, counting cells not bytes so ANSI styling survives.
+func fitWidth(s string, w int) string {
+	s = ansi.Truncate(s, w, "…")
+	if pad := w - ansi.StringWidth(s); pad > 0 {
+		s += strings.Repeat(" ", pad)
+	}
+	return s
 }
 
 // runPicker runs a picker to completion inside the overlay pane and returns the

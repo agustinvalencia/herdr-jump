@@ -22,14 +22,16 @@ func herdrBin() string {
 // terminal; entries with an empty Agent are plain shells rather than detected AI
 // agents, so callers filter those out.
 type Agent struct {
-	Agent       string `json:"agent"`
-	AgentStatus string `json:"agent_status"`
-	Cwd         string `json:"cwd"`
-	Focused     bool   `json:"focused"`
-	PaneID      string `json:"pane_id"` // focus target for `herdr agent focus`
-	TabID       string `json:"tab_id"`
-	TerminalID  string `json:"terminal_id"`
-	WorkspaceID string `json:"workspace_id"`
+	Agent                 string `json:"agent"`
+	AgentStatus           string `json:"agent_status"`
+	Cwd                   string `json:"cwd"`
+	Focused               bool   `json:"focused"`
+	PaneID                string `json:"pane_id"` // focus target for `herdr agent focus`
+	TabID                 string `json:"tab_id"`
+	TerminalID            string `json:"terminal_id"`
+	TerminalTitle         string `json:"terminal_title"`          // latest OSC 0/2 title
+	TerminalTitleStripped string `json:"terminal_title_stripped"` // title without the activity glyph
+	WorkspaceID           string `json:"workspace_id"`
 }
 
 // Workspace is one entry from `herdr workspace list` — a "space" in herdr's UI.

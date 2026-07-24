@@ -21,6 +21,16 @@ type Config struct {
 	// wide panes. 0 disables the cap (the card grows to fit the pane). Nil in
 	// the file means "unset" → the built-in default applies.
 	MaxWidth *int `toml:"max_width"`
+	// Agents / Spaces control which fields each card shows, mirroring herdr's
+	// [ui.sidebar.*] rows model. Empty → the built-in default layout.
+	Agents section `toml:"agents"`
+	Spaces section `toml:"spaces"`
+}
+
+// section is a per-picker layout: a `rows` array where each inner list is one
+// line inside the card, listing the field tokens to show (see fields.go).
+type section struct {
+	Rows [][]string `toml:"rows"`
 }
 
 const defaultMaxWidth = 96
@@ -38,6 +48,12 @@ func loadConfig() Config {
 			}
 			if fc.MaxWidth != nil {
 				c.MaxWidth = fc.MaxWidth
+			}
+			if len(fc.Agents.Rows) > 0 {
+				c.Agents = fc.Agents
+			}
+			if len(fc.Spaces.Rows) > 0 {
+				c.Spaces = fc.Spaces
 			}
 		}
 	}
@@ -59,6 +75,22 @@ func (c Config) maxWidth() int {
 		return defaultMaxWidth
 	}
 	return *c.MaxWidth
+}
+
+// agentRows / spaceRows return the configured card layout, or the built-in
+// default when the file leaves the section empty.
+func (c Config) agentRows() [][]string {
+	if len(c.Agents.Rows) > 0 {
+		return c.Agents.Rows
+	}
+	return defaultAgentRows
+}
+
+func (c Config) spaceRows() [][]string {
+	if len(c.Spaces.Rows) > 0 {
+		return c.Spaces.Rows
+	}
+	return defaultSpaceRows
 }
 
 // parseAlign turns a free-form spec ("center", "top-left", "bottom right") into
