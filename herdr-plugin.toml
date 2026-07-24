@@ -7,7 +7,7 @@
 
 id = "agustinvalencia.herdr-jump"
 name = "Herdr Jump"
-version = "0.1.2"
+version = "0.1.3"
 min_herdr_version = "0.7.0"
 description = "Separate overlay pickers for herdr spaces and agents. Two pop-ups: one lists your spaces (workspaces), one lists your agents with live status colours — pick to jump. Unlike the combined session navigator, agents and spaces are browsed independently."
 platforms = ["linux", "macos"]
