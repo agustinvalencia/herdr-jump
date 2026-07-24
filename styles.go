@@ -27,16 +27,29 @@ var (
 	countStyle  = lipgloss.NewStyle().Foreground(colOverlay)
 	promptStyle = lipgloss.NewStyle().Foreground(colAccent).Bold(true)
 
+	heroStyle    = lipgloss.NewStyle().Foreground(colText).Bold(true) // card's primary line (e.g. terminal title)
 	primaryStyle = lipgloss.NewStyle().Foreground(colText)
 	badgeStyle   = lipgloss.NewStyle().Foreground(colSubtext)
 	detailStyle  = lipgloss.NewStyle().Foreground(colOverlay)
 	footerStyle  = lipgloss.NewStyle().Foreground(colOverlay)
 	emptyStyle   = lipgloss.NewStyle().Foreground(colOverlay).Italic(true)
 
-	// Selected row: accent bar on the left, brighter text.
-	selBarStyle  = lipgloss.NewStyle().Foreground(colAccent).Bold(true)
+	// Selected card: thick accent border; unselected: dim rounded border.
 	selTextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#ffffff")).Bold(true)
 )
+
+// stateIcon renders the status dot in its state colour.
+func stateIcon(status string) string {
+	return lipgloss.NewStyle().Foreground(statusColor(status)).Render("●")
+}
+
+// stateText renders the status word in its state colour ("" when unknown).
+func stateText(status string) string {
+	if status == "" {
+		return ""
+	}
+	return lipgloss.NewStyle().Foreground(statusColor(status)).Render(status)
+}
 
 // statusColor maps a herdr agent/workspace status to its glyph colour,
 // mirroring herdr's own agent-panel palette.

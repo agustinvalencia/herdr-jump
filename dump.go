@@ -3,18 +3,24 @@ package main
 import "fmt"
 
 // runPreview renders the picker View at a forced size (WIDTHxHEIGHT, default
-// 120x40) so the layout and alignment can be eyeballed without an overlay pane.
+// 120x40) so the card layout and alignment can be eyeballed without an overlay
+// pane. It runs the real agentItems path over sample data.
 func runPreview(args []string) {
 	w, h := 120, 40
 	if len(args) > 0 {
 		fmt.Sscanf(args[0], "%dx%d", &w, &h)
 	}
-	items := []item{
-		{id: "1", glyph: "●", glyphColor: colGreen, primary: "claude", badge: "NFM", detail: shortenPath("/Users/eaguval/repositories/work/foundation-model/network-foundation-model"), focused: true, search: "claude NFM"},
-		{id: "2", glyph: "●", glyphColor: colYellow, primary: "claude", badge: "cuaderno", detail: "~/dotfiles/.config", search: "claude cuaderno"},
-		{id: "3", glyph: "●", glyphColor: colRed, primary: "claude", badge: "cuaderno", detail: "~/repositories/personal/workflow/cuaderno", search: "claude cuaderno"},
+	agents := []Agent{
+		{Agent: "claude", AgentStatus: "working", PaneID: "w3:pA", WorkspaceID: "w3", Focused: true,
+			Cwd: "/Users/eaguval/repositories/work/foundation-model/network-foundation-model", TerminalTitleStripped: "Analyse epic status and plan next work"},
+		{Agent: "claude", AgentStatus: "idle", PaneID: "w6:p4", WorkspaceID: "w6",
+			Cwd: "/Users/eaguval/repositories/personal/workflow/cuaderno", TerminalTitleStripped: "Redesign cuaderno-app UI"},
+		{Agent: "claude", AgentStatus: "blocked", PaneID: "w6:p7", WorkspaceID: "w6",
+			Cwd: "/Users/eaguval/Documents/notebook", TerminalTitleStripped: "Schedule end-of-day train booking"},
 	}
-	p := newPicker("Agents", items)
+	labels := map[string]string{"w3": "NFM", "w6": "Notes"}
+	order := map[string]int{"w3": 3, "w6": 6}
+	p := newPicker("Agents", agentItems(agents, labels, order, defaultAgentRows))
 	p.width, p.height = w, h
 	fmt.Print(p.View())
 }

@@ -1,5 +1,7 @@
 # Compiled binary — rebuilt by scripts/build.sh at plugin install/link time.
 /bin/
+# Stray binary from a bare `go build .` (goreleaser names it herdr-jump).
+/herdr-jump
 
 # GoReleaser output.
 /dist/

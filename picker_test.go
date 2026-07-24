@@ -13,9 +13,9 @@ func runes(s string) tea.KeyMsg { return tea.KeyMsg{Type: tea.KeyRunes, Runes: [
 
 func sampleItems() []item {
 	return []item{
-		{id: "a", primary: "alpha", search: "alpha"},
-		{id: "b", primary: "bravo", search: "bravo"},
-		{id: "c", primary: "charlie", search: "charlie"},
+		{id: "a", status: "idle", lines: []string{"alpha"}, search: "alpha"},
+		{id: "b", status: "working", lines: []string{"bravo"}, search: "bravo"},
+		{id: "c", status: "blocked", lines: []string{"charlie"}, search: "charlie"},
 	}
 }
 
@@ -155,7 +155,7 @@ func TestAgentItemsFocusTargetIsPaneID(t *testing.T) {
 	labels := map[string]string{"w3": "work"}
 	order := map[string]int{"w3": 3}
 
-	items := agentItems(agents, labels, order)
+	items := agentItems(agents, labels, order, defaultAgentRows)
 	if len(items) != 1 {
 		t.Fatalf("got %d items, want 1", len(items))
 	}
@@ -174,7 +174,7 @@ func TestAgentItemsGroupedByWorkspaceOrder(t *testing.T) {
 	}
 	order := map[string]int{"w3": 3, "w6": 6}
 
-	items := agentItems(agents, map[string]string{}, order)
+	items := agentItems(agents, map[string]string{}, order, defaultAgentRows)
 	got := []string{items[0].id, items[1].id, items[2].id}
 	want := []string{"w3:p1", "w6:p1", "w6:p2"} // w3 first; w6 pair keeps input order
 	for i := range want {
