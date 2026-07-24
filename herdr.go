@@ -26,7 +26,7 @@ type Agent struct {
 	AgentStatus string `json:"agent_status"`
 	Cwd         string `json:"cwd"`
 	Focused     bool   `json:"focused"`
-	PaneID      string `json:"pane_id"`
+	PaneID      string `json:"pane_id"` // focus target for `herdr agent focus`
 	TabID       string `json:"tab_id"`
 	TerminalID  string `json:"terminal_id"`
 	WorkspaceID string `json:"workspace_id"`
@@ -115,9 +115,11 @@ func workspaceLabels() map[string]string {
 	return labels
 }
 
-// focusAgent brings the given agent (by terminal id) into focus.
-func focusAgent(terminalID string) error {
-	return exec.Command(herdrBin(), "agent", "focus", terminalID).Run()
+// focusAgent brings the given agent into focus. The target is the agent's
+// pane_id: herdr's `agent focus <target>` resolves panes, and a terminal_id is
+// rejected with agent_not_found.
+func focusAgent(paneID string) error {
+	return exec.Command(herdrBin(), "agent", "focus", paneID).Run()
 }
 
 // focusWorkspace switches to the given space.

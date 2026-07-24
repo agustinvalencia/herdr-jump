@@ -12,6 +12,18 @@ func runAgentsUI() {
 	}
 	labels, order := workspaceInfo()
 
+	items := agentItems(agents, labels, order)
+
+	if id := runPicker("Agents", items); id != "" {
+		if err := focusAgent(id); err != nil {
+			errExit("could not focus agent:", err)
+		}
+	}
+}
+
+// agentItems builds the picker rows for the agents overlay. Kept pure (no herdr
+// calls) so the ordering and — crucially — the focus-target id are unit-testable.
+func agentItems(agents []Agent, labels map[string]string, order map[string]int) []item {
 	// Match herdr's agent panel: group by space in workspace order, preserving
 	// each space's native (tab) order. A stable sort by workspace number does
 	// exactly that — no status-based reordering — so the list mirrors the sidebar.
@@ -23,7 +35,9 @@ func runAgentsUI() {
 	for _, a := range agents {
 		label := labels[a.WorkspaceID]
 		items = append(items, item{
-			id:         a.TerminalID,
+			// pane_id, not terminal_id: herdr resolves `agent focus <target>` by
+			// pane (a terminal_id yields agent_not_found). See focusAgent.
+			id:         a.PaneID,
 			glyph:      "●",
 			glyphColor: statusColor(a.AgentStatus),
 			primary:    a.Agent,
@@ -33,10 +47,5 @@ func runAgentsUI() {
 			search:     a.Agent + " " + label + " " + a.AgentStatus + " " + a.Cwd,
 		})
 	}
-
-	if id := runPicker("Agents", items); id != "" {
-		if err := focusAgent(id); err != nil {
-			errExit("could not focus agent:", err)
-		}
-	}
+	return items
 }

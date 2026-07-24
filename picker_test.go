@@ -144,3 +144,42 @@ func TestViewRendersNumbersNoPanic(t *testing.T) {
 		t.Fatalf("view missing numbered items:\n%s", v)
 	}
 }
+
+// TestAgentItemsFocusTargetIsPaneID guards the herdr API contract: the id we hand
+// to `herdr agent focus` must be the pane_id, not the terminal_id (which herdr
+// rejects with agent_not_found). Regression test for issue #1.
+func TestAgentItemsFocusTargetIsPaneID(t *testing.T) {
+	agents := []Agent{
+		{Agent: "claude", PaneID: "w3:pA", TerminalID: "term_abc", WorkspaceID: "w3"},
+	}
+	labels := map[string]string{"w3": "work"}
+	order := map[string]int{"w3": 3}
+
+	items := agentItems(agents, labels, order)
+	if len(items) != 1 {
+		t.Fatalf("got %d items, want 1", len(items))
+	}
+	if items[0].id != "w3:pA" {
+		t.Fatalf("focus target id = %q, want the pane_id %q", items[0].id, "w3:pA")
+	}
+}
+
+// TestAgentItemsGroupedByWorkspaceOrder keeps the list in herdr's sidebar order:
+// grouped by space (workspace number), native tab order preserved within a space.
+func TestAgentItemsGroupedByWorkspaceOrder(t *testing.T) {
+	agents := []Agent{
+		{Agent: "a", PaneID: "w6:p1", WorkspaceID: "w6"},
+		{Agent: "b", PaneID: "w3:p1", WorkspaceID: "w3"},
+		{Agent: "c", PaneID: "w6:p2", WorkspaceID: "w6"},
+	}
+	order := map[string]int{"w3": 3, "w6": 6}
+
+	items := agentItems(agents, map[string]string{}, order)
+	got := []string{items[0].id, items[1].id, items[2].id}
+	want := []string{"w3:p1", "w6:p1", "w6:p2"} // w3 first; w6 pair keeps input order
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("order = %v, want %v", got, want)
+		}
+	}
+}

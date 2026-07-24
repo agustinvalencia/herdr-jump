@@ -31,8 +31,9 @@ func runDump() {
 	}
 	fmt.Printf("AGENTS (%d)\n", len(agents))
 	for _, a := range agents {
+		// Bracketed id is the focus target we hand to `herdr agent focus`.
 		fmt.Printf("  %-8s %-10s %-10s %s  [%s]\n",
-			a.AgentStatus, a.Agent, labels[a.WorkspaceID], shortenPath(a.Cwd), a.TerminalID)
+			a.AgentStatus, a.Agent, labels[a.WorkspaceID], shortenPath(a.Cwd), a.PaneID)
 	}
 
 	spaces, err := listWorkspaces()
